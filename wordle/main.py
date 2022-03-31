@@ -1,6 +1,7 @@
 from os import stat
 import random
 from collections import defaultdict
+import timeit
 
 # TODO guess words in answer space
 
@@ -77,24 +78,12 @@ class AI_minimize_worst_case:
 	def __init__(self) -> None:
 		self.cur_guess = ""
 		self.answer_space = tuple(ANSWERS.copy()) #type: tuple
-
-	# def get_guess(self) -> str:
-	# 	vals = defaultdict(lambda: defaultdict(int)) #dict[word] is a dict[colors] is a count
-	# 	for guess in GUESSES:
-	# 		for answer in self.answer_space:
-	# 			vals[guess][Game.colors(guess, answer)] += 1
-		
-	# 	for word in vals.keys():
-	# 		vals[word] = max(vals[word].values())
-		
-	# 	self.cur_guess = min(vals, key = vals.get)
-	# 	return self.cur_guess
 	
 	def get_guess(self) -> str:
-		if AI_minimize_worst_case.lookup.get(self.answer_space) == None:
-			if len(self.answer_space) == 1:
-				return self.answer_space[0]
+		if len(self.answer_space) == 1:
+			AI_minimize_worst_case.lookup[self.answer_space] = self.answer_space[0]
 
+		elif AI_minimize_worst_case.lookup.get(self.answer_space) == None:
 			best_guess = "" #type: str
 			best_guess_max = 2 ** 20
 			for guess in GUESSES:
@@ -109,6 +98,7 @@ class AI_minimize_worst_case:
 					best_guess = guess
 			self.cur_guess = best_guess
 			AI_minimize_worst_case.lookup[self.answer_space] = best_guess
+		
 		self.cur_guess = AI_minimize_worst_case.lookup[self.answer_space]
 		return AI_minimize_worst_case.lookup[self.answer_space]
 
@@ -130,7 +120,7 @@ class Tester:
 			for i in range(10):
 				if guess == answer:
 					out += i + 1
-					print(answer, i + 1)
+					# print(answer, i + 1)
 					break
 				ai.set_colors(Game.colors(guess, answer))
 				guess = ai.get_guess()
@@ -152,7 +142,7 @@ class UI:
 
 Game.test_colors()
 
-Tester(AI_minimize_worst_case)
+print(timeit.timeit(lambda: Tester(AI_minimize_worst_case), number = 1))
 
 # UI(AI_minimize_worst_case)
 
