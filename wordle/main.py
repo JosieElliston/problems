@@ -90,7 +90,7 @@ class AI_minimize_worst_case:
 				vals = defaultdict(int) #type: defaultdict[str, int]
 				for answer in self.answer_space:
 					vals[Game.colors(guess, answer)] += 1
-					if vals[Game.colors(guess, answer)] > best_guess_max:
+					if vals[Game.colors(guess, answer)] >= best_guess_max:
 						break
 				vals_max = max(vals.values())
 				if vals_max < best_guess_max:
@@ -142,7 +142,7 @@ class UI:
 
 Game.test_colors()
 
-print(timeit.timeit(lambda: Tester(AI_minimize_worst_case), number = 1))
+# print(timeit.timeit(lambda: Tester(AI_minimize_worst_case), number = 1))
 
-# UI(AI_minimize_worst_case)
+UI(AI_minimize_worst_case)
 
