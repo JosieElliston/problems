@@ -1,4 +1,3 @@
-from os import stat
 import random
 from collections import defaultdict
 import timeit

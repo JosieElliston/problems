@@ -31,7 +31,7 @@ def helper(lo_i, testing):
 
 def works(prime_i):
 	for lo_i in range(prime_i):
-		
+		pass
 
 for prime_i in list(range(len(primes)-1))[::-1]:
 	if works(prime_i):
