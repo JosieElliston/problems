@@ -16,14 +16,14 @@ def chebyshev_distance(a: Point, b: Point) -> float:
 	return max(abs(b[0] - a[0]), abs(b[1] - a[1]))
 
 def distance(a: Point, b: Point) -> float:
-	return manhattan_distance(a, b)
-	# return euclidean_distance(a, b)
+	# return manhattan_distance(a, b)
+	return euclidean_distance(a, b)
 	# return chebyshev_distance(a, b)
 
 
-RESOLUTION = 2
-SCREEN_SIZE = 500
-TILE_COUNT = 10
+RESOLUTION = 5
+SCREEN_SIZE = 1000
+TILE_COUNT = 50
 points: list[Point] = [(random.random() * SCREEN_SIZE, random.random() * SCREEN_SIZE) for i in range(TILE_COUNT)]
 cells: list[Cell] = [(a, (int(random.random() * 255), int(random.random() * 255), int(random.random() * 255))) for a in points]
 run: bool = True
