@@ -21,7 +21,7 @@ def distance(a: Point, b: Point) -> float:
 	# return chebyshev_distance(a, b)
 
 
-RESOLUTION = 5
+RESOLUTION = 3
 SCREEN_SIZE = 1000
 TILE_COUNT = 50
 points: list[Point] = [(random.random() * SCREEN_SIZE, random.random() * SCREEN_SIZE) for i in range(TILE_COUNT)]
@@ -32,7 +32,7 @@ screen = pygame.display.set_mode((SCREEN_SIZE, SCREEN_SIZE))
 while run:
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT:
-			running = False
+			run = False
 
 	
 	screen.fill((255, 255, 255))
