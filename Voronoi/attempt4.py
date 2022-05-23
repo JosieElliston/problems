@@ -6,9 +6,9 @@ random.seed(0)
 import timeit
 
 Point = tuple[float, float]
-Color = tuple[int, int, int]
+Color = tuple[int, int , int]
 
-POINTS_PER_LINE = 100
+POINTS_PER_LINE = 500
 SCREEN_SIZE = 500
 CELL_COUNT = 20
 CENTROID_STEPS = 1
@@ -16,20 +16,26 @@ CENTROID_STEPS = 1
 def drawable(p: Point):
 	return p[0] * SCREEN_SIZE / POINTS_PER_LINE, p[1] * SCREEN_SIZE / POINTS_PER_LINE
 
-def distance(a: Point, b: Point) -> float:
-	return ((a[0] - b[0])**2 + (a[1] - b[1])**2)**.5
+# def distance(a: Point, b: Point) -> float:
+# 	return ((a[0] - b[0])**2 + (a[1] - b[1])**2)**.5
 
 def relitive_distance(a: Point, b: Point) -> float:
 	return (a[0] - b[0])**2 + (a[1] - b[1])**2
 
-def distance_overestimate(a: Point, b: Point) -> float:
-	return abs(a[0] - b[0]) + abs(a[1] - b[1])
+# def distance_overestimate(a: Point, b: Point) -> float:
+# 	return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
 def centroid(cell: Cell) -> Point:
 	out: Point = 0, 0
 	for point in cell.area:
-		out = out[0] + point[0] / len(cell.area), out[1] + point[1] / len(cell.area)
-	return out
+		out = out[0] + point[0], out[1] + point[1]
+	return out[0] / len(cell.area), out[1] / len(cell.area)
+
+def perimeter_centroid(cell: Cell) -> Point:
+	out: Point = 0, 0
+	for point in cell.perimeter:
+		out = out[0] + point[0], out[1] + point[1]
+	return out[0] / len(cell.perimeter), out[1] / len(cell.perimeter)
 
 class Cell:
 	def __init__(self, seed) -> None:
@@ -86,8 +92,8 @@ def main() -> None:
 		for testing in test_points:
 			if cell_by_point[testing] != cell_by_point[point]:
 				cell_by_point[point].neighbors.add(cell_by_point[testing])
-				cell_by_point[point].perimeter.add(testing)
-				outline.add(testing)
+				cell_by_point[point].perimeter.add(point)
+				outline.add(point)
 
 	
 	pygame.init()
@@ -96,19 +102,29 @@ def main() -> None:
 	clock = pygame.time.Clock()
 	while not pygame.QUIT in [event.type for event in pygame.event.get()]:
 		# print(clock.tick())
-		screen.fill((255, 255, 255))
-		for cell in cells:
-			for point in cell.area:
-				pygame.draw.circle(screen, cell.color, drawable(point), SCREEN_SIZE / POINTS_PER_LINE)
-			for point in cell.perimeter:
-				pygame.draw.circle(screen, (0, 0, 0), drawable(point), SCREEN_SIZE / POINTS_PER_LINE)
-			pygame.draw.circle(screen, (0, 0, 0), drawable(cell.seed), SCREEN_SIZE / POINTS_PER_LINE)
+		screen.fill((0, 0, 0))
+		# for cell in cells:
+		# 	for point in cell.area:
+		# 		pygame.draw.circle(screen, cell.color, drawable(point), SCREEN_SIZE / POINTS_PER_LINE)
+		# 	for point in cell.perimeter:
+		# 		pygame.draw.circle(screen, (0, 0, 0), drawable(point), SCREEN_SIZE / POINTS_PER_LINE)
+		# 	pygame.draw.circle(screen, (0, 0, 0), drawable(cell.seed), SCREEN_SIZE / POINTS_PER_LINE)
+		for point in outline:
+			pygame.draw.circle(screen, (0, 255, 255), drawable(point), SCREEN_SIZE / POINTS_PER_LINE)
 		
-		# for point in cells[0].area:
-		# 	pygame.draw.circle(screen, (0, 0, 0), drawable(point), SCREEN_SIZE / POINTS_PER_LINE)
-		# for neighbor in cells[0].neighbors:
-		# 	for point in neighbor.area:
-		# 		pygame.draw.circle(screen, (100, 100, 100), drawable(point), SCREEN_SIZE / POINTS_PER_LINE)
+		mouse_pos = pygame.mouse.get_pos()
+		cell_of_mouse: Cell = cell_by_point[(int(mouse_pos[0] / SCREEN_SIZE * POINTS_PER_LINE), int(mouse_pos[1] / SCREEN_SIZE * POINTS_PER_LINE))]
+		
+		for cell in cells:
+			pygame.draw.circle(screen, (0, 0, 255), drawable(cell.seed), SCREEN_SIZE / POINTS_PER_LINE)
+			pygame.draw.circle(screen, (0, 255, 0), drawable(centroid(cell)), SCREEN_SIZE / POINTS_PER_LINE)
+			pygame.draw.circle(screen, (255, 0, 0), drawable(perimeter_centroid(cell)), SCREEN_SIZE / POINTS_PER_LINE)
+		
+		for neighbor in cell_of_mouse.neighbors:
+			for point in neighbor.perimeter:
+				pygame.draw.circle(screen, (0, 0, 255), drawable(point), SCREEN_SIZE / POINTS_PER_LINE)
+		for point in cell_of_mouse.perimeter:
+			pygame.draw.circle(screen, (255, 255, 255), drawable(point), SCREEN_SIZE / POINTS_PER_LINE)
 		
 		pygame.display.flip()
 
