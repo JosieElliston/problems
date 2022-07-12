@@ -1,0 +1,52 @@
+import sympy
+import timeit
+
+
+SIZE = 1000000
+mapping: dict[int, int] = dict()
+
+def step(n):
+	if mapping.get(n) == None:
+		mapping[n] = sum(sympy.divisors(n)) - n
+	return mapping[n]
+
+degenerate: set[int] = {0}
+def chain_length(n: int) -> int:
+	chain: set[int] = {n}
+	stepped = step(n)
+	while True:
+		if stepped in degenerate:
+			degenerate.update(chain)
+			return 0
+		if stepped > SIZE:
+			degenerate.update(chain)
+			return 0
+		if stepped in chain:
+			if stepped == n:
+				return len(chain)
+			else:
+				return 0
+		chain.add(stepped)
+		stepped = step(stepped)
+
+best_n = 0
+best_len = 0
+for n in range(SIZE):
+	length = chain_length(n)
+	if length > best_len:
+		print(n, length)
+		best_n = n
+		best_len = length
+
+print(best_n)
+
+chain: set[int] = {best_n}
+stepped = step(best_n)
+while True:
+	if stepped in chain:
+		break
+	chain.add(stepped)
+	stepped = step(stepped)
+
+print(chain)
+print(min(chain))
