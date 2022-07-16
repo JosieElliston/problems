@@ -5,7 +5,7 @@
     # output the last inputted node (many activated input nodes)
     # compression algorithm
     # evolution training
-    # "convolutional"
+    # "convolution"
     # is a number prime?
 
 from __future__ import annotations
@@ -14,7 +14,7 @@ from math import exp
 from copy import deepcopy
 from typing import Callable
 
-from sympy import isprime
+# from sympy import isprime
 # from keras.datasets import mnist
 
 
@@ -123,8 +123,8 @@ def normalize(net: Net, r: float = 1) -> tuple[float, Net]:
 
 def train_net(net: Net) -> Net:
     # TODO: use magnitude of the gradients somehow
-    random_bias = .01
-    STEP_SIZE = 2**-2
+    random_bias = .005
+    STEP_SIZE = 2**-7
     error = test_net(net)
     if TRAIN_TYPE == "random net":
         while True:
@@ -148,6 +148,19 @@ def train_net(net: Net) -> Net:
                     node = layer[node_i]
                     for val_i in range(len(node)):
                         new_net[layer_i][node_i][val_i] += random() * STEP_SIZE / i
+            if test_net(new_net) < error or r.random() < random_bias:
+                return new_net
+    elif TRAIN_TYPE == "random net sqrt reducing radius":
+        i = 0
+        while True:
+            i += 1
+            new_net = deepcopy(net)
+            for layer_i in range(len(net)):
+                layer = net[layer_i]
+                for node_i in range(len(layer)):
+                    node = layer[node_i]
+                    for val_i in range(len(node)):
+                        new_net[layer_i][node_i][val_i] += random() * STEP_SIZE / (i**.5)
             if test_net(new_net) < error or r.random() < random_bias:
                 return new_net
     elif TRAIN_TYPE == "random node":
@@ -177,7 +190,7 @@ def train_net(net: Net) -> Net:
     elif TRAIN_TYPE == "gradient decent":
         # proportional to STEP_SIZE, but not length of the vector
         length, normalized = normalize(gradient_net(net), STEP_SIZE)
-        print("length", length)
+        # print("length", length)
         new_net = deepcopy(net)
         for layer_i in range(len(net)):
             layer = net[layer_i]
@@ -186,9 +199,7 @@ def train_net(net: Net) -> Net:
                 for val_i in range(len(node)):
                     new_net[layer_i][node_i][val_i] -= normalized[layer_i][node_i][val_i]
         return new_net
-    elif TRAIN_TYPE == "derivative decent":
-        return NotImplemented
-        # choose the val with the max derivative
+    elif TRAIN_TYPE == "random derivative decent":
         new_net = deepcopy(net)
         layer_i = r.randrange(0, len(net))
         layer = net[layer_i]
@@ -201,7 +212,12 @@ def train_net(net: Net) -> Net:
         new_net = deepcopy(net)
         new_net[layer_i][node_i][val_i] -= derivative * STEP_SIZE
         return new_net
+    elif TRAIN_TYPE == "derivative decent":
+        return NotImplemented
+        # choose the val with the max derivative
+        
     elif TRAIN_TYPE == "gradient bisection":
+        return NotImplemented
         length, normalized = normalize(gradient_net(net), STEP_SIZE)
         print("length", length)
         new_net = deepcopy(net)
@@ -216,38 +232,49 @@ def train_net(net: Net) -> Net:
     return NotImplemented
 
 # # f(x) = x
-# oracle: list[tuple[Array, Array]] = list()
-# precision = 100
-# for i in range(precision):
-#     oracle.append(([i/precision], [i/precision]))
+oracle: list[tuple[Array, Array]] = list()
+precision = 100
+for i in range(precision):
+    oracle.append(([i/precision], [i/precision]))
 
 # f(x) = is_prime(x)
-oracle: list[tuple[Array, Array]] = list()
-UP_TO = 2**16
-for i in range(UP_TO):
-    if r.random() > .5:
-        oracle.append(([int(l) for l in bin(i)[2:]], [isprime(i)]))
+# oracle: list[tuple[Array, Array]] = list()
+# UP_TO = 2**16
+# for i in range(UP_TO):
+#     if r.random() > .5:
+#         oracle.append(([int(l) for l in bin(i)[2:]], [isprime(i)]))
 
 
-def write_input_output():
-    with open("general/input_output.txt", mode = "w") as file:
-        for inp, out in oracle:
-            bin doesn't return 16 digets
-            file.write(str(inp[0]) + ", " + str(eval_net(net, inp)[0]) + "\n") 
+# def write_input_output():
+#     with open("general/input_output.txt", mode = "w") as file:
+#         for inp, out in oracle:
+#             bin doesn't return 16 digits
+#             file.write(str(inp[0]) + ", " + str(eval_net(net, inp)[0]) + "\n") 
 
 # TRAIN_TYPE = "random net" #0.31955847067148196
-TRAIN_TYPE = "random net reducing radius" #0.19454636119734536
+# TRAIN_TYPE = "random net reducing radius" #0.15841917531398714
+# TRAIN_TYPE = "random net sqrt reducing radius" #0.14165083464867614
 # TRAIN_TYPE = "random node" #0.26367770669679086
 # TRAIN_TYPE = "random node reducing radius" #0.2549962551011183
 # TRAIN_TYPE = "gradient decent" #0.5747421665894348
+TRAIN_TYPE = "random derivative decent"
 # TRAIN_TYPE = "derivative decent" #
 # TRAIN_TYPE = "gradient bisection" #
 
-net = new_net(16, [2, 2, 1])
+net = new_net(len(oracle[0][0]), [2, 2, 1])
+
 print(str_net(net))
-# write_input_output()
+best_net = net
+best_net_eval = test_net(best_net)
+
 for i in range(150):
     net = train_net(net)
-    print(i, test_net(net))
-    write_input_output()
-print(str_net(net))
+    net_eval = test_net(net)
+    if net_eval < best_net_eval:
+        best_net = net
+        best_net_eval = net_eval
+    print(i, net_eval)
+    # write_input_output()
+
+print(str_net(best_net))
+print(best_net_eval)

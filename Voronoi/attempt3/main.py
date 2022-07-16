@@ -43,10 +43,10 @@ class Cell:
 
 # def closest(p: Point, cells: list[Cell]) -> Cell:
 # 	best_cell: Cell = cells[0]
-# 	best_distance = relitive_distance(p, best_cell.seed)
+# 	best_distance = relative_distance(p, best_cell.seed)
 # 	for cell in cells:
 # 		# if distance_overestimate(p, other) < best_distance:
-# 		cur_distance = relitive_distance(p, cell.seed)
+# 		cur_distance = relative_distance(p, cell.seed)
 # 		if cur_distance < best_distance:
 # 			best_cell = cell
 # 			best_distance = cur_distance

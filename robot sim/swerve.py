@@ -18,6 +18,7 @@ Variables are generally in units of inches, radians, and seconds. Space to go to
 from __future__ import annotations
 import math
 import random
+from typing import Callable
 import pygame
 import pygame.gfxdraw
 
@@ -73,6 +74,8 @@ def draw_angle(theta: float, length = 100) -> None:
 def draw_vector(x: float, y: float, scale = 1) -> None:
     """Draws the line from the robot to the relative point (x, y). (For debugging)."""
     pygame.draw.aaline(screen, (250, 0, 0), to_screen(robot.x, robot.y), to_screen(robot.x + scale*x, robot.y + scale*y))
+
+
 
 class Ball:
     """This class represents a cargo."""
@@ -323,7 +326,6 @@ class Robot:
     def shoot(self) -> None:
         """Shoot a ball in the direction of the front intake."""
         if self.cool_down > self.MIN_COOL_DOWN and not (REQUIRE_BALLS and self.feeder == 0):
-            print("shoot")
             self.cool_down = 0
             balls.append(Ball(self.x, self.y, self.x_v + self.SHOOTER_SPEED * math.cos(self.theta), self.y_v + self.SHOOTER_SPEED * math.sin(self.theta)))
 
@@ -335,12 +337,35 @@ class Robot:
         relative_x, relative_y = FIELD_X/2 - self.x, FIELD_Y/2 - self.y
         if relative_x == 0  and relative_y == 0:
             raise ValueError
-        if True:
-            # just ignore sideways momentum for now
+        if False:
+            # ignore linear movement
             return self._goto_angular(relative_x, relative_y)
         else:
-            raise NotImplemented
-            # CHARLES PUT YOUR STUFF HERE
+            # time: float
+            # FIELD_X/2 = self.x + time * (self.x_v + self.SHOOTER_SPEED*math.cos(theta))
+            # FIELD_Y/2 = self.y + time * (self.y_v + self.SHOOTER_SPEED*math.sin(theta))
+            def f(theta: float) -> float:
+                """This is a rearrangement of the system into standard form."""
+                return ((self.y_v + self.SHOOTER_SPEED*math.sin(theta)) / relative_y) - ((self.x_v + self.SHOOTER_SPEED*math.cos(theta)) / relative_x)
+
+            def f_prime(theta: float) -> float:
+                """The derivative of f relative to theta."""
+                return self.SHOOTER_SPEED*math.cos(theta) / relative_y + self.SHOOTER_SPEED*math.sin(theta) / relative_x
+
+            def solve() -> float:
+                """Returns the value theta that causes f to be 0 and t > 0."""
+                NEWTON_STEPS = 20
+                # the easiest way to ensure the solution is non-degenerate is to seed newton's method with the direction to the goal
+                guess = atan(relative_x, relative_y)
+                for i in range(NEWTON_STEPS):
+                    guess -= f(guess)/f_prime(guess)
+                return guess
+
+            self.theta_v = 0
+            self.theta = solve()
+            return 0
+            target_theta = solve()
+            return self._goto_angular(math.cos(target_theta), math.sin(target_theta))
 
 FIELD_X = 648
 FIELD_Y = 324
@@ -384,7 +409,7 @@ def update() -> None:
     draw_vector(robot.x_v, robot.y_v)
     # draw_vector(delta_x_v, delta_y_v)
     pygame.draw.circle(screen, (250, 250, 250), to_screen(FIELD_X / 2, FIELD_Y / 2), HUB_RADIUS * SCREEN_SIZE_MULTIPLIER, width = 2) # upper hub
-    # pygame.draw.circle(screen, (250, 250, 250), to_screen(FIELD_X / 2, FIELD_Y / 2), 30 * SCREEN_SIZE_MULTIPLIER, width = 2) # lower hub    
+    # pygame.draw.circle(screen, (250, 250, 250), to_screen(FIELD_X / 2, FIELD_Y / 2), 30 * SCREEN_SIZE_MULTIPLIER, width = 2) # lower hub
 
 while not pygame.QUIT in [event.type for event in pygame.event.get()]:
     dt = clock.tick(60) # clock.tick(random.randrange(30, 60))
